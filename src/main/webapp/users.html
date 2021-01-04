@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户管理界面</title>
+    <!--引入bootstrap-->
+    <link rel="stylesheet" href="./bootvue/css/bootstrap.min.css">
+</head>
+<body>
+<!--导航条-->
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">用户管理系统</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="#">欢迎：xxx</a></li>
+
+            </ul>
+        </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+</nav>
+<div id="app">
+    <!--中心布局-->
+    <div class="container-fluid">
+        <!--搜索框-->
+        <div class="row col-md-8 col-md-offset-1">
+            <form class="navbar-form navbar-left" role="search">
+                <div class="form-group">
+                    <input type="text" id="searchName" class="form-control" placeholder="请输入姓名" v-model="searchName">
+                </div>
+                <button type="submit" class="btn btn-default" @click.prevent="searchLike(searchName)">搜索</button>
+            </form>
+        </div>
+        <div class="row" style="margin-top: 100px;">
+
+            <div class="col-md-8">
+                <!--用户信息展示-->
+                <table class="table table-striped table-bordered table-hover">
+                    <tr>
+                        <th>ID</th>
+                        <th>姓名</th>
+                        <th>年龄</th>
+                        <th>薪资</th>
+                        <th>电话号码</th>
+                        <th>操作</th>
+                    </tr>
+                    <tbody>
+                    <tr v-for="user,index in users" :key="user.id">
+                        <td>{{user.id}}</td>
+                        <td>{{user.name}}</td>
+                        <td>{{user.age}}</td>
+                        <td>{{user.salary}}</td>
+                        <td>{{user.phoneCode}}</td>
+                        <td>
+                            <button class="btn btn-danger" @click="deleteUser(user.id)">删除</button>&nbsp;&nbsp;<button class="btn btn-primary" @click="findUser(user.id)">修改
+                        </button>
+                        </td>
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="col-md-4">
+                <form>
+                    <div class="form-group">
+                        <label for="username">姓名</label>
+                        <input type="text" class="form-control" v-model="user.name" id="username" placeholder="姓名">
+                    </div>
+                    <div class="form-group">
+                        <label for="age">年龄</label>
+                        <input type="text" class="form-control" v-model="user.age" id="age" placeholder="年龄">
+                    </div>
+                    <div class="form-group">
+                        <label for="salary">薪资</label>
+                        <input type="text" class="form-control" v-model="user.salary" id="salary" placeholder="薪资">
+                    </div>
+                    <div class="form-group">
+                        <label for="phoneCode">电话号码</label>
+                        <input type="text" class="form-control" v-model="user.phoneCode" id="phoneCode" placeholder="电话号码">
+                    </div>
+
+
+                    <button type="button" class="btn btn-primary" @click="saveUserInfo">添加</button>
+                    <button type="button" class="btn btn-danger" @click="resetUser">重置</button>
+                </form>
+            </div>
+            <tr>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+        </div>
+
+    </div>
+</div>
+<!--引入vuejs-->
+<script src="./bootvue/js/vue.js"></script>
+<!--引入axios.js-->
+<script src="bootvue/js/axios.min.js"></script>
+<script>
+    const app = new Vue({
+        el: "#app",
+        data: {
+            users:[],
+            user:{},//完成数据双向绑定
+            searchName:""
+        },
+        methods: {
+            searchLike(name){
+                //console.log(name);
+                let _this=this;
+                axios.get("http://localhost:8989/users/user/findLike?name="+name).then(function (response) {
+                    _this.users=response.data;
+                }).catch(function (err) {
+                    console.log(err);
+                })
+
+            },
+            //按id查询用户
+            findUser(id){
+                let _this=this;
+                console.log(id);
+                axios.get("http://localhost:8989/users/user/findUser?id="+id).then(function (response) {
+                    console.log(response.data);
+                    _this.user=response.data;
+                }).catch(function (err) {
+                    console.log(err);
+                })
+            },
+            //保存用户信息的函数
+            saveUserInfo(){
+                console.log(this.user);
+                let _this=this;
+                axios.post("http://localhost:8989/users/user/save",this.user).then(function (response) {
+                    console.log(response.data);
+                    if(response.data.success){
+                        _this.findAll();
+                        //清空上一次保存的用户
+                        _this.user={};
+                    }
+                    else {
+                        alert(response.data.message);
+                    }
+
+                }).catch(function (err) {
+                    console.log(err);
+
+                })
+            },
+            //查询所有用户的函数
+            findAll(){
+                let _this=this;
+                axios.get("http://localhost:8989/users/user/findAll").then(function (response) {
+                    console.log(response.data);
+                    _this.users=response.data;
+                }).catch(function (err) {
+                    console.log(err);
+                });
+            },
+            resetUser(){
+                this.user={};
+            },
+            //根据id删除用户
+            deleteUser(id){
+                console.log(id);
+                let _this=this;
+                if(window.confirm("确定要删除这条记录吗？")){
+                    axios.get("http://localhost:8989/users/user/delete?id="+id).then(function (response) {
+                        console.log(response.data);
+                        if(response.data.success){
+                            _this.findAll();
+                            //清空上一次保存的用户
+                            //_this.user={};
+                        }
+                        else {
+                            alert(response.data.message);
+                        }
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
+                }
+
+            }
+
+
+
+        },
+        //生命周期相关函数
+        created(){
+
+            this.findAll();
+
+        }
+
+    })
+</script>
+
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GOJS初探</title>
+</head>
+<body>
+<div id="myDiagramDiv" style="border: solid 1px blue; width:100%; height:500px">
+
+
+</div>
+<div style="width: 150px;height:450px;float: left;border:1px solid #bef;">
+    <div id="myPalette" style="width: 140px; height: 450px"></div>
+</div>
+<div id="stDiagram" style="float: left; width:800px; height:450px; border:1px solid #666; margin-bottom: 10px; margin-left: 20px;"></div>
+<div id="app">
+    <input type="button" @click="makegram" value="点我">
+    <input type="button" @click="makegram2" value="点我">
+
+</div>
+<!--引入vuejs-->
+<script src="./bootvue/js/vue.js"></script>
+<script>
+    const app=new Vue({
+        el:"#app",
+        data:{
+            diagram:'',
+        },
+        methods:{
+            created(){
+
+            },
+            makegram(){
+                var $ = go.GraphObject.make;
+                var diagram = $(go.Diagram, "myDiagramDiv");
+                //console.log(this.diagram);
+                diagram.nodeTemplate =
+                    $(go.Node, "Auto",
+                        $(go.Shape,
+                            { figure: "RoundedRectangle", fill: "white" },
+                            new go.Binding("fill", "color")),
+                        $(go.TextBlock,
+                            { margin: 5 },
+                            new go.Binding("text", "key"))
+                    );
+
+                var nodeDataArray = [
+                    { key: "Alpha", color: "lightblue" },
+                    { key: "Beta", color: "pink" },
+                    { key: "Gama", color: "white"}
+                ];
+                var linkDataArray = [
+                    { from: "Alpha", to: "Beta" },
+                    { from: "Alpha", to: "Gama"}
+                ];
+                diagram.model = new go.GraphLinksModel(nodeDataArray, linkDataArray);
+
+
+
+
+                diagram.add($(
+                    go.Part, 'Horizontal',
+                    $(go.TextBlock,
+                        { text: '一个文本块'}
+                    ),
+                    $(go.TextBlock,
+                        { text: '一个有颜色的文本块', background: '#1ad', stroke: '#FFF', width:150, height:20, textAlign: 'center', alignment: go.Spot.Center, margin:10 }
+                    ),
+                    $(go.TextBlock,
+                        { text: '一个可编辑文本块', background: '#FFF', width:150, height:20, alignment: go.Spot.Center, textAlign: 'center', editable: true, margin:10 }
+                    ),
+                ));
+                diagram.add($(
+                    go.Part,
+                    go.Panel.Position,
+                    {
+                        background: '#eee',
+                        //position: new go.Point(0, 0), //定位面板相对diagram的位置
+                    },
+                    $(go.TextBlock,
+                        {text: '0, 0', background: '#6bc1ff' }
+                    ),
+                    $(go.TextBlock,
+                        {text: '100, 100', background: '#6bc1ff', position: new go.Point(100, 100) }
+                    ),
+                    $(go.Shape,
+                        {width: 50,height: 50,stroke: "#3385ff",fill: '#6bc1ff', position: new go.Point(100, 0) }
+                    ),
+                ));
+
+
+            },
+            makegram2(){
+                var CellSize = new go.Size(50, 50);
+                var $ = go.GraphObject.make;
+                var myDiagram =
+                    $(go.Diagram, "stDiagram",
+                        {
+                            //define grid size
+                            grid: $(go.Panel, "Grid",
+                                { gridCellSize: CellSize },
+                                $(go.Shape, "LineH", { stroke: "lightgray" }),
+                                $(go.Shape, "LineV", { stroke: "lightgray" })
+                            ),
+                            //allow drop on diagram
+                            allowDrop: true,
+                            //support grid snapping when dragging
+                            "draggingTool.isGridSnapEnabled": true,
+                            "draggingTool.gridSnapCellSpot": go.Spot.Center,
+                        });
+                var groupFill = "rgba(128,128,128,0.2)";
+                var groupStroke = "gray";
+                myDiagram.groupTemplate =
+                    $(go.Group,
+                        {
+                            layerName: "Background",
+                            resizable:  false,
+                            locationSpot: new go.Spot(0, 0, CellSize.width/2, CellSize.height/2)
+                        },
+                        //save/load the point that is the top-left corner of the node, not the location
+                        new go.Binding("position", "pos", go.Point.parse),
+
+                        $(go.Shape, "Rectangle",  // the rectangular shape around the members
+                            { name: "SHAPE",
+                                fill: groupFill,
+                                stroke: groupStroke,
+                            },
+                            new go.Binding("desiredSize", "size", go.Size.parse)),
+                    );
+                myDiagram.model = new go.GraphLinksModel([
+                    { key: "G1", isGroup: true, pos: "0 0", size: "200 200" },
+                    { key: "G2", isGroup: true, pos: "200 0", size: "200 200" },
+                    { key: "G3", isGroup: true, pos: "0 200", size: "200 200" },
+                    { key: "G4", isGroup: true, pos: "200 200", size: "200 200" }
+                ]);
+
+                myDiagram.nodeTemplate =
+                    $(go.Node, "Auto",
+                        {
+                            // set the node to center
+                            locationSpot: new go.Spot(0, 0, CellSize.width / 2, CellSize.height / 2),
+                            resizable: false,
+                        },
+                        new go.Binding("position", "loc", go.Point.parse),
+
+                        $(go.Shape,
+                            { name: "SHAPE", figure: "RoundedRectangle", fill: "white", minSize: CellSize},
+                            new go.Binding('fill', 'color'),
+                            new go.Binding('stroke', 'stroke')),
+                        $(go.TextBlock,
+                            { alignment: go.Spot.Center, font: 'bold 16px sans-serif' },
+                            new go.Binding('text', 'key')),
+                    );
+                var green = '#B2FF59';
+                var blue = '#81D4FA';
+                var yellow = '#FFEB3B';
+
+                var myModel = $(go.GraphLinksModel);
+                myModel.nodeDataArray = [
+                    { key: "a", color: green },
+                    { key: "b", color: blue },
+                    { key: "c", color: yellow }
+                ];
+                //myDiagram.model = myModel;
+                myDiagram.nodeTemplate =
+                    $(go.Node, "Auto",
+                        {
+                            // set the node to center
+                            locationSpot: new go.Spot(0, 0, CellSize.width / 2, CellSize.height / 2),
+                            resizable: false,
+                            mouseDragLeave: function(e, node) {
+                                // assign new property values to the GraphObjects
+                                node.updateTargetBindings();
+                            },
+                        },
+                    );
+                var dropFill = "rgba(128,255,255,0.2)";
+                var dropStroke = "red";
+                function highlightGroup(grp, show) {
+                    if (!grp) return;
+                    if (show) {  // check that the drop may really happen into the Group
+                        grp.isHighlighted = true;
+                        return;
+                    }
+                    grp.isHighlighted = false;
+                }
+
+            }
+        }
+    })
+
+</script>
+<script src="./bootvue/js/go-debug.js"></script>
+<!--<script>
+    var diagram = new go.Diagram("myDiagramDiv");
+    diagram.model = new go.GraphLinksModel(
+        [{ key: "Hello" },   // 节点数据
+            { key: "World!" }],
+        [{ from: "Hello", to: "World!"}]  // 链路数据
+    );
+</script>-->
+
+</body>
+</html>

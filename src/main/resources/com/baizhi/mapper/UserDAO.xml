@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.baizhi.dao.UserDAO">
+
+
+    <!--模糊检索-->
+    <select id="findName" resultType="User">
+        select * from t_user
+        <where>
+            <if test="name!=''">
+                name like concat('%',#{name},'%')
+            </if>
+        </where>
+    </select>
+
+    <!--查询所有-->
+    <select id="findAll" resultType="User">
+        select * from t_user
+    </select>
+
+    <!--插入用户-->
+    <insert id="save" parameterType="User">
+        insert into t_user values (#{id},#{name},#{age},#{salary},#{phoneCode})
+    </insert>
+    <!--删除用户-->
+    <delete id="delete" parameterType="String">
+        delete from t_user where id=#{id}
+    </delete>
+
+    <!--根据id查询用户-->
+    <select id="findUser" parameterType="String" resultType="User">
+        select id,name,age,salary,phoneCode from t_user where id=#{id}
+    </select>
+    <!--更新用户-->
+    <update id="update" parameterType="User">
+        update t_user set name=#{name},age=#{age},salary=#{salary},phoneCode=#{phoneCode}
+        where id=#{id}
+    </update>
+</mapper>

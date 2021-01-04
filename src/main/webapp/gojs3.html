@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="myDiagramDiv" style="border: solid 1px blue; width:100%; height:500px">
+
+
+</div>
+<div id="app">
+    <input type="button" @click="makegram" value="点我">
+    <input type="button" @click="makegram2" value="点我">
+
+</div>
+
+<!--引入vuejs-->
+<script src="./bootvue/js/vue.js"></script>
+<script src="./bootvue/js/go-debug.js"></script>
+<script>
+    const app = new Vue({
+        el:"#app",
+        data:{
+            MyDiagram:''
+        },
+        methods:{
+            makegram() {
+                var $ = go.GraphObject.make;
+                this.myDiagram = $(go.Diagram, "myDiagramDiv");
+                //console.log(this.diagram);
+                this.myDiagram.nodeTemplate =
+                    $(go.Node, "Auto",
+                        $(go.Shape,
+                            { figure: "RoundedRectangle", fill: "white",portId: "",toLinkable: true,fromLinkable: true },
+                            new go.Binding("fill", "color"),),
+                        $(go.TextBlock,
+                            { margin: 5 },
+                            new go.Binding("text", "key"))
+                    );
+
+                var nodeDataArray = [
+                    { key: "Alpha", color: "lightblue" },
+                    { key: "Beta", color: "pink" },
+                    { key: "Gamma", color: "white"}
+                ];
+                var linkDataArray = [
+                    { from: "Alpha", to: "Beta" },
+                    { from: "Alpha", to: "Gamma"}
+                ];
+                this.myDiagram.model = new go.GraphLinksModel(nodeDataArray, linkDataArray);
+            },
+            makegram2() {
+                //添加节点与连接线
+                this.myDiagram.startTransaction("make new node");
+                this.myDiagram.model.addNodeData({ key: "Omega" });
+                this.myDiagram.model.addNodeData({ key: "Delta" });
+
+                this.myDiagram.model.addLinkData({ from: "Omega", to: "Delta" });
+                this.myDiagram.commitTransaction("make new node");
+            }
+        }
+    })
+</script>
+
+
+</body>
+</html>

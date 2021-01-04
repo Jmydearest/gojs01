@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="myDiagramDiv" style="border: solid 1px blue; width:1000px; height:1000px">
+
+
+</div>
+<script src="./bootvue/js/go-debug.js"></script>
+<script>
+    var $ = go.GraphObject.make;
+    // 整体布局和用户鼠标键盘交互的配置
+    var myDiagram = $(go.Diagram, 'myDiagramDiv', {
+        initialContentAlignment: go.Spot.TopCenter,
+        allowDrop: false,
+        allowMove: false,
+        allowSelect: false,
+        layout: $(go.TreeLayout, {
+            angle: 90
+        })
+    });
+    const nodeDataArray = [
+        { key: 1, text: '动物' },
+        { key: 2, text: '脊椎动物', isGroup: true, category: 'OfGroups' },
+        { key: 3, text: '无脊椎动物', isGroup: true, category: 'OfGroups' },
+        { key: 4, text: '鱼类', isGroup: true, category: 'OfNodes', group: 2 },
+        { key: 5, text: '鸟类', isGroup: true, category: 'OfNodes', group: 2 },
+        { key: 21, text: '哺乳类', isGroup: true, category: 'OfNodes', group: 2 },
+        { key: 6, text: '环节动物', isGroup: true, category: 'OfNodes', group: 3 },
+        { key: 7, text: '节肢动物', category: 'OfNodes', isGroup: true, group: 3 },
+        { key: 8, text: '鲶鱼', group: 4 },
+        { key: 9, text: '沙丁鱼', group: 4 },
+        { key: 10, text: '麻雀', group: 5 },
+        { key: 22, text: '大象', group: 21 },
+        { key: 11, text: '蝴蝶', group: 7 },
+        { key: 12, text: '蚯蚓', group: 6 },
+        { key: 13, text: '会飞', group: 35 },
+        { key: 14, text: '会爬', group: 35 },
+        { key: 15, text: '会游泳', group: 35 },
+        { key: 25, text: '不会动', group: 35 },
+        { key: 16, text: '吃的', isGroup: true, group: 36, category: 'OfNodes' },
+        { key: 17, text: '喝的', isGroup: true, category: 'OfNodes', group: 36 },
+        { key: 18, text: '水果', group: 16 },
+        { key: 19, text: '植物', group: 16 },
+        { key: 23, text: '水', group: 17 },
+        { key: 24, text: '饮料', group: 17 },
+        { key: 35, text: '动作', isGroup: true, category: 'OfGroups'},
+        { key: 36, text: '食物', isGroup: true, category: 'OfGroups' }
+    ];
+
+    const linkDataArray = [
+        { from: 1, to: 2 },
+        { from: 1, to: 3 },
+        { from: 8, to: 15 },
+        { from: 9, to: 15 },
+        { from: 10, to: 13 },
+        { from: 22, to: 15 },
+        { from: 12, to: 14 },
+        { from: 11, to: 13 },
+        { from: 10, to: 18 },
+        { from: 22, to: 18 },
+        { from: 8, to: 19 },
+        { from: 9, to: 19 },
+        { from: 10, to: 19 },
+        { from: 11, to: 19 },
+        { from: 12, to: 19 },
+        { from: 22, to: 19 },
+        { from: 25, to: 36 }
+    ];
+    myDiagram.model = new go.GraphLinksModel(nodeDataArray, linkDataArray);
+    myDiagram.nodeTemplate = $(
+        go.Node,
+        'Auto',
+        $(go.Shape, 'RoundedRectangle', { fill: 'white' }),
+        $(go.TextBlock, new go.Binding('text', 'text'))
+    );
+    /*myDiagram.linkTemplate = $(
+        Go dot Link: premium domain name,
+        go.Link.Bezier,
+        $(go.Shape, {
+            strokeWidth: 1,
+            fill: '#8f99aa',
+            stroke: '#8f99aa'
+        }),
+        $(go.Shape, { toArrow: 'Standard' })
+    );*/
+    myDiagram.groupTemplateMap.add(
+        'OfGroups',   // 注册组名
+        $( go.Group, 'Auto',  // 设置组属性和排版
+            {
+                background: 'transparent',
+                handlesDragDropForMembers: true,
+                // 使用网格布局
+                layout: $(go.GridLayout, {
+                    wrappingWidth: Infinity,
+                    alignment: go.GridLayout.Position,
+                    cellSize: new go.Size(10, 10), // 每个part的最小尺寸
+                    spacing: new go.Size(4, 4) // 间隔
+                })
+            },
+            // 整个黄色的矩形大框框
+            $(go.Shape, 'Rectangle', { fill: null, stroke: '#FFDD33', strokeWidth: 2 }),
+            // 填充在矩形框里的标题部分，这里引入了go.Placeholder 对象，这个对象用于存放成员，并做一些填充
+            // 标题和成员，我们竖向排版
+            $(go.Panel,'Vertical',
+                // 标题模块，我们添加了一个展开收起的按钮，和标题文字是横向排布的
+                $( go.Panel, 'Horizontal',
+                    { stretch: go.GraphObject.Horizontal, background: '#FFDD33' },
+                    // 展开收起按钮
+                    $('SubGraphExpanderButton', { alignment: go.Spot.Right, margin: 5 }),
+                    // 标题文字和一些设置
+                    $(go.TextBlock,
+                        {
+                            alignment: go.Spot.Left,
+                            margin: 5,
+                            font: 'bold 18px sans-serif',
+                            opacity: 0.75,
+                            stroke: '#404040'
+                        },
+                        new go.Binding('text', 'text')
+                    )
+                ),
+                $(go.Placeholder, { padding: 5, alignment: go.Spot.TopLeft })
+            )
+        )
+    );
+    myDiagram.groupTemplateMap.add(
+        'OfNodes',   // 注册组名
+        // 分析同上
+        $( go.Group, 'Auto',
+            {
+                background: 'transparent',
+                ungroupable: true,
+                computesBoundsAfterDrag: true,
+                handlesDragDropForMembers: true,
+                layout: $(go.GridLayout, {
+                    wrappingColumn: 1,
+                    alignment: go.GridLayout.Position,
+                    cellSize: new go.Size(1, 1),
+                    spacing: new go.Size(4, 4)
+                })
+            },
+            $( go.Shape, 'Rectangle', { fill: null, stroke: '#33D3E5', strokeWidth: 2 }),
+            $( go.Panel,'Vertical',
+                $( go.Panel, 'Horizontal',
+                    { stretch: go.GraphObject.Horizontal, background: '#33D3E5' },
+                    $('SubGraphExpanderButton', { alignment: go.Spot.Right, margin: 5 }),
+                    $( go.TextBlock,
+                        {
+                            alignment: go.Spot.Left,
+                            editable: true,
+                            margin: 5,
+                            font: 'bold 16px sans-serif',
+                            opacity: 0.75,
+                            stroke: '#404040'
+                        },
+                        new go.Binding('text', 'text')
+                    )
+                ),
+                $(go.Placeholder, { padding: 5, alignment: go.Spot.TopLeft })
+            )
+        )
+    );
+</script>
+</body>
+</html>
